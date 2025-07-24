@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Motivation Quotes 💡</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <h1>📝 Add Your Quote</h1>
+
+    <form id="quoteForm">
+        <input type="text" id="quoteInput" placeholder="Enter your quote here..." required />
+        <button type="submit">Add Quote</button>
+    </form>
+
+    <h2>📜 All Quotes</h2>
+    <ul id="quoteList"></ul>
+
+    <script>
+        const API_URL = "http://127.0.0.1:8000";
+
+        // Load quotes from backend
+        async function loadQuotes() {
+            const response = await fetch(`${API_URL}/read_quote`);
+            const data = await response.json();
+
+            const list = document.getElementById("quoteList");
+            list.innerHTML = ""; // Clear old items
+            data.forEach(item => {
+                const li = document.createElement("li");
+                li.textContent = item.quote;
+                list.appendChild(li);
+            });
+        }
+
+        // Submit new quote
+        document.getElementById("quoteForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const quoteText = document.getElementById("quoteInput").value;
+
+            await fetch(`${API_URL}/add_quote`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ quote: quoteText })
+            });
+
+            document.getElementById("quoteInput").value = ""; // Clear box
+            loadQuotes(); // Refresh list
+        });
+
+        // Initial load
+        loadQuotes();
+    </script>
+</body>
+
+</html>
