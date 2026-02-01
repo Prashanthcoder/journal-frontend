@@ -23,34 +23,50 @@
 
         // Load quotes from backend
         async function loadQuotes() {
-            const response = await fetch(`${API_URL}/read_quote`);
-            const data = await response.json();
+            try {
+                const response = await fetch(`${API_URL}/read_quote`);
+                if (!response.ok) throw new Error("Failed to fetch quotes from API");
 
-            const list = document.getElementById("quoteList");
-            list.innerHTML = ""; // Clear old items
-            data.forEach(item => {
-                const li = document.createElement("li");
-                li.textContent = item.quote;
-                list.appendChild(li);
-            });
+                const data = await response.json();
+
+                const list = document.getElementById("quoteList");
+                list.innerHTML = ""; // Clear old items
+                data.forEach(item => {
+                    const li = document.createElement("li");
+                    li.textContent = item.quote;
+                    list.appendChild(li);
+                });
+            } catch (error) {
+                console.error(error);
+                alert("Unable to load quotes. Check backend/API.");
+            }
         }
 
         // Submit new quote
         document.getElementById("quoteForm").addEventListener("submit", async (event) => {
             event.preventDefault();
 
-            const quoteText = document.getElementById("quoteInput").value;
+            const quoteText = document.getElementById("quoteInput").value.trim();
+            if (!quoteText) {
+                alert("Quote cannot be empty");
+                return;
+            }
 
-            await fetch(`${API_URL}/add_quote`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ quote: quoteText })
-            });
+            try {
+                const response = await fetch(`${API_URL}/add_quote`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ quote: quoteText })
+                });
 
-            document.getElementById("quoteInput").value = ""; // Clear box
-            loadQuotes(); // Refresh list
+                if (!response.ok) throw new Error("Failed to add quote");
+
+                document.getElementById("quoteInput").value = ""; // Clear input
+                loadQuotes(); // Refresh list
+            } catch (error) {
+                console.error(error);
+                alert("Quote not added. Check backend.");
+            }
         });
 
         // Initial load
